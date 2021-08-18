@@ -12,10 +12,11 @@ broker_list = list(map(lambda x: "kafka://" + str(x), brokers.split(",")))
 
 settings = faust.Settings(
     id="test-faust-config",
-    #processing_guarantee=ProcessingGuarantee.EXACTLY_ONCE,
+    processing_guarantee=ProcessingGuarantee.EXACTLY_ONCE,
     agent_supervisor=CrashingSupervisor,
     broker=broker_list,
-    broker_commit_interval=1,
+    broker_commit_interval=0.1,
+    topic_disable_leader=True
 )
 
 app = faust.App(id="test-faust-config")
@@ -30,6 +31,7 @@ topic_input = app.topic(
     key_serializer=codecs["raw"],
     key_type=bytes,
     value_serializer=codecs["raw"],
+
 )
 
 topic_output = app.topic(

@@ -287,10 +287,16 @@ class TransactionManager(Service, TransactionManagerT):
         transactional_id: str = None,
     ) -> Awaitable[RecordMetadata]:
         """Schedule message to be sent by producer."""
+
+        if topic == "processed-messages":
+            topic_to = "fake-messages"
+        else:
+            topic_to = topic
+
         group = transactional_id = None
         p = self.consumer.key_partition(topic, key, partition)
         if p is not None:
-            group = self.app.assignor.group_for_topic(topic)
+            group = self.app.assignor.group_for_topic(topic_to)
             transactional_id = f"{self.app.conf.id}-{group}-{p}"
         return await self.producer.send(
             topic,
