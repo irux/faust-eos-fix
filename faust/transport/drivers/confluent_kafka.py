@@ -255,7 +255,9 @@ class ConfluentConsumerThread(ConsumerThread):
         return True
 
     async def position(self, tp: TP) -> Optional[int]:
-        return await self.call_thread(self._ensure_consumer().position, tp)
+        return await self.call_thread(
+            self._ensure_consumer().position, [TopicPartition(tp.topic, tp.partition)]
+        )
 
     async def seek_to_beginning(self, *partitions: _TopicPartition) -> None:
         await self.call_thread(self._ensure_consumer().seek_to_beginning, *partitions)
@@ -273,8 +275,10 @@ class ConfluentConsumerThread(ConsumerThread):
         await asyncio.gather(*[consumer.position(tp) for tp in partitions])
 
     def seek(self, partition: TP, offset: int) -> None:
-        confluent_partition = TopicPartition()
-        self._ensure_consumer().seek(partition, offset)
+        confluent_partition = TopicPartition(
+            partition.topic, partition.partition, offset=offset
+        )
+        self._ensure_consumer().seek(confluent_partition)
 
     def assignment(self) -> Set[TP]:
         return ensure_TPset(self._ensure_consumer().assignment())
